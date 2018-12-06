@@ -1,0 +1,4 @@
+change lib by this
+examples in opensmart.....
+if sd don't work, use arduino ide 1.6.11
+
