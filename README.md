@@ -15,6 +15,8 @@ This is a synchronized alarm clock with a voice assistant. It is an autonomous s
 - BMP280 (temperatue & pressure)
 - DHT22 (temperature & humidity)
 - USB connector (5v outpout)
+- light sensor
+- speaker
 
 
 ### Communication
