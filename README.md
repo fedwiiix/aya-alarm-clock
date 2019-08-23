@@ -3,9 +3,12 @@
 **This project is part of the Aya project**
 This is a synchronized alarm clock with a voice assistant. It is an autonomous system when the assistant is absent
 
-### Functions
-
-
+<p align="center">
+  <img src="./img/img.jpg" height="200">
+  <img src="./img/img1.jpg" height="200">
+  <img src="./img/img2.jpg" height="200">
+  <em>AIA Project</em>
+</p>
 
 ### Composed by
 - Aarduino Mega 2560
