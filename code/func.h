@@ -1,3 +1,49 @@
+//********************************************************************************************
+//                                    day Choise Screen
+//********************************************************************************************
+
+void displaySelectDayScreen(){
+  tft.reset();
+  tft.fillScreen(BLACK);
+  tft.setTextColor(color1);
+  for(int i=0;i<3;i++){
+    tft.fillRoundRect(10+i*100, 15, 90, 100,20, GREY);
+    tft.setCursor(35+i*100, 70);
+    tft.print(Day[i+1]);
+    tft.fillRoundRect(10+i*100, 130, 90, 100,20, GREY);
+    tft.setCursor(35+i*100, 185);
+    tft.print(Day[i+4]);
+  }
+  tft.fillRoundRect(310, 15, 90, 215,20, GREY);
+  tft.setCursor(332, 125);
+  tft.print(Day[0]);
+
+  int flag=0;
+  while(flag==0){
+    tp = ts.getPoint();   //tp.x, tp.y are ADC values
+    if (tp.z > MINPRESSURE && tp.z < MAXPRESSURE) {
+      if (SwapXY != (Orientation & 1)) SWAP(tp.x, tp.y);
+      xpos = map(tp.x, TS_LEFT, TS_RT, tft.width(), 0);
+      ypos = map(tp.y, TS_TOP, TS_BOT, tft.height(), 0);
+      //Serial.print(xpos);      Serial.print(" - ");      Serial.println(ypos);
+      for(int i=0;i<3;i++){
+        if(xpos<100 +i*100){
+          if(ypos<135){
+            setDate(i+1);
+          }else{
+            setDate(i+4);
+          }
+          flag=1;
+          break;
+        }
+      }
+      if(flag==0){
+        setDate(0);
+        flag=1;
+      }
+    }
+  }
+}
 
 //********************************************************************************************
 //                                    display time
@@ -13,8 +59,8 @@ void initTime(){
   Hour=now.hour();
 
   tft.setTextSize(1);                                   // set date
-  tft.setCursor(100, 230);
-  tft.print( longDay[now.dayOfWeek()]+" "+now.day()+" "+Month[now.month()-1] );
+  tft.setCursor(160, 230);
+  tft.print( longDay[now.dayOfWeek()] );
   
   tft.setFont(&FreeSerif24pt7b);                        // display date
   tft.setTextSize(3);
@@ -51,11 +97,9 @@ void initTime(){
   previousMillis = currentMillis - now.second()*1000;
   while(Mode==0){
 
-    serialEvent1Alarms();
-
     currentMillis = millis();                                             // wait 59 sec befor get next time
-    //Serial.println(currentMillis - previousMillis);
-    if (currentMillis - previousMillis >= 59000) {
+    //Serial.println(currentMillis - previousMillis);59000
+    if (currentMillis - previousMillis >= 1000) {
       delay(500);
       DateTime now = RTC.now();
 
@@ -74,8 +118,8 @@ void initTime(){
             tft.setFont(&FreeSerif12pt7b);
             tft.setTextColor(color2);
             tft.setTextSize(1);
-            tft.setCursor(100, 220);
-            tft.print( longDay[now.dayOfWeek()]+" "+now.day()+" "+Month[now.month()-1] );
+            tft.setCursor(160, 220);
+            tft.print( longDay[now.dayOfWeek()] );
             
             getNextAlarm(Hour,Min,now.dayOfWeek());
             
@@ -115,22 +159,27 @@ void initTime(){
         
         if(nextAlarmDay == now.dayOfWeek() && nextAlarmHour == Hour && nextAlarmMin == Min ){     // check alarm
           
-          for(i=0;i<7;i++){                                                                       // check if alarm recurrence
-            if(repeter[nextAlarmId][i]=='1')
-              i=10;
-          }
-          if(i==7){                                                                               // disable alarm
-            stats[nextAlarmId]="0";
-            savePublishAlarms(1);
-          }
+          if(disableNextAlarm == 0){
+            for(i=0;i<7;i++){                                                                       // check if alarm recurrence
+              if(repeter[nextAlarmId][i]=='1')
+                i=10;
+            }
+            if(i==7){                                                                               // disable alarm
+              stats[nextAlarmId]="0";
+              savePublishAlarms(1);
+            }
+        
+            nextAlarmMinRep=nextAlarmMin;                                                           // push alarm in repeat alarm
+            nextAlarmHourRep=nextAlarmHour;
+            nextAlarmIdRep=nextAlarmId;
+            nextAlarmActiveRep=1;
       
-          nextAlarmMinRep=nextAlarmMin;                                                           // push alarm in repeat alarm
-          nextAlarmHourRep=nextAlarmHour;
-          nextAlarmIdRep=nextAlarmId;
-          nextAlarmActiveRep=1;
-    
-          getNextAlarm(Hour,Min,now.dayOfWeek());                                                 // get next alarm
-          tft.drawBitmap(20,10,notification,32,32,YELLOW);                                        // notify the alarm is active
+            getNextAlarm(Hour,Min,now.dayOfWeek());                                                 // get next alarm
+            tft.drawBitmap(20,10,notification,32,32,YELLOW);                                        // notify the alarm is active
+          } else {
+            disableNextAlarm = 0;
+            getNextAlarm(Hour,Min,now.dayOfWeek());                                                 // get next alarm
+          }
         }
         if(nextAlarmActiveRep>0 && nextAlarmHourRep == Hour && nextAlarmMinRep == Min ){  
           
@@ -211,7 +260,7 @@ void alarmSing(String type){
     
   }else if(type=="Musique"){
 
-    Serial1.println("ALARMMUSIC");
+    //Serial1.println("ALARMMUSIC");
     int i = 0;
     tone(PIN_BUZZER, bip[i],150);
     delay(150);
@@ -243,8 +292,17 @@ void displayChoiseScreen(){
   tft.reset();
   tft.fillScreen(BLACK);
   tft.setTextColor(color1);
-  tft.fillScreen(BLACK);
-  //tft.fillRect(25, 40, 100, 120, color1);
+  
+  if(nextAlarmId!=-1){
+    tft.fillRoundRect(25, 0, 350, 30,10, GREY);
+    tft.setCursor(50, 20);
+    if(disableNextAlarm==0){
+      tft.print("Desactiver la prochaine alarme");
+    }else{
+      tft.print("Activer la prochaine alarme");
+    }
+  }
+
   tft.fillRoundRect(25, 40, 100, 120,20, GREY);
   tft.setCursor(15, 190);
   tft.print("Ajouter une");
@@ -281,7 +339,13 @@ void displayChoiseScreen(){
       ypos = map(tp.y, TS_TOP, TS_BOT, tft.height(), 0);
       //Serial.print(xpos);      Serial.print(" - ");      Serial.println(ypos);
 
-      if(xpos<134){
+      if(ypos<40){
+        if(nextAlarmId!=-1){
+          disableNextAlarm=!disableNextAlarm;
+        }
+        Mode=0;
+        tft.reset();
+      }else if(xpos<134){
         modifAlarmId=nbAlarm;
         Mode=2;
         tft.reset();
@@ -316,8 +380,8 @@ void changeClock(){
   tft.setCursor(10, 25);
   tft.print("Changer l'heure :"); 
   tft.setTextColor(RED); 
-  tft.setCursor(85, 60);
-  tft.print( longDay[now.dayOfWeek()]+" "+now.day()+" "+Month[now.month()-1] );
+  tft.setCursor(160, 60);
+  tft.print( longDay[now.dayOfWeek()] );
   
   tft.setFont(&FreeSerif24pt7b);
   tft.setTextSize(2);
@@ -406,6 +470,11 @@ void setModifTime(){
   }
   tft.setFont(&FreeSerif12pt7b);
   tft.setTextSize(1);
+}
+
+void setDate(int day) {
+  DateTime now = RTC.now();
+  RTC.adjust(DateTime(2023, 1, 1+day, now.hour(), now.minute(), now.second())); 
 }
 
 

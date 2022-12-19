@@ -45,19 +45,25 @@ void getNextAlarm(int h,int m,int d){
   }
 
   if(nextAlarmId!=-1){
-    tft.fillRect(20, 0, 360, 30, BLACK);  
-    tft.setCursor(75, 20);
-    tft.print("Alarme ");
-    tft.print(nextAlarmId+1);
-    tft.print(" ");
-    tft.print( longDay[nextAlarmDay]);
-    tft.print(" a ");
-    tft.print(nextAlarmHour);
-    tft.print(":");
-    if(nextAlarmMin<10)
-      tft.print("0");
-    tft.print(nextAlarmMin);
-    tft.drawBitmap(20,10,notification,32,32,RED);
+    if(disableNextAlarm==1){
+      tft.fillRect(20, 0, 360, 30, BLACK);  
+      tft.setCursor(75, 20);
+      tft.print("Prochaine alarme desactivee");
+    }else{
+      tft.fillRect(20, 0, 360, 30, BLACK);  
+      tft.setCursor(75, 20);
+      tft.print("Alarme ");
+      tft.print(nextAlarmId+1);
+      tft.print(" : ");
+      tft.print( longDay[nextAlarmDay]);
+      tft.print(" a ");
+      tft.print(nextAlarmHour);
+      tft.print(":");
+      if(nextAlarmMin<10)
+        tft.print("0");
+      tft.print(nextAlarmMin);
+      tft.drawBitmap(20,10,notification,32,32,RED);
+    }
   }else{
     tft.fillRect(20, 0, 360, 30, BLACK);  
     tft.setCursor(130, 20);
@@ -180,7 +186,7 @@ void savePublishAlarms(int mod){                                            // s
       messageScreen("error opening \nSAVE.TXT\n Write Error",0);
     }
   }else{
-    Serial1.println(jsonExt);
+    //Serial1.println(jsonExt);
   }
   /*//Serial.println(jsonExt.length());                 // EEPROM write 
   if(mod){

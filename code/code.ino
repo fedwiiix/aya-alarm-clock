@@ -107,12 +107,17 @@ int i,j;
 int modifAlarm=0,globalModifAlarm=1, modifAlarmId;
 int nextAlarmHour, nextAlarmMin, nextAlarmDay, nextAlarmHourRep, nextAlarmMinRep,nextAlarmIdRep, nextAlarmId, nextAlarmActiveRep=0;
 
+int disableNextAlarm = 0;
+
 /***************************************************************/
 
 String Day[7]={"Dim","Lun","Mar","Mer","Jeu","Ven","Sam"};
 String longDay[8]={"Dimanche","Lundi","Mardi","Mercredi","Jeudi","Vendredi","Samedi"};
 String Month[12]={"Janvier","Fevrier","Mars","Avril","Mai","Juin","Juillet","Aout","Septembre","Octobre","Novembre","decembre"};
 String modChoiseAlarm[]={"Bip","Sonnerie","Musique"};
+
+void setDate(int day);
+void displaySelectDayScreen();
 
 void serialEvent1Alarms();
 void wakeUpNow();
@@ -232,26 +237,15 @@ void setup(void) {
   attachInterrupt(1, wakeUpNow, HIGH);
   attachInterrupt(0, wakeUpNow, HIGH);
 
-  //attachInterrupt(0, serialEvent1, HIGH);
-  Serial1.begin(9600);
-  
-  //attachInterrupt(4, serialEvent1, CHANGE);
+  tft.fillScreen(BLACK);
+  savePublishAlarms(0);
 
-//String json = "{\"alarmes\":[{\"action\": \"Musique\",\"repeter\": \"0111110\",\"heure\": \"08:30\",\"status\": \"1\",\"appareil\": \"33\",\"cmd\": \"\",\"modDate\":\"\"},{\"action\": \"Sonnerie\",\"repeter\": \"0111110\",\"heure\": \"08:45\",\"status\": \"1\",\"appareil\": \"33\",\"cmd\": \"\",\"modDate\":\"\"},{\"action\": \"Bip\",\"repeter\": \"1000000\",\"heure\": \"10:45\",\"status\": \"1\",\"appareil\": \"33\",\"cmd\": \"\",\"modDate\":\"\"}]}";
-//getJsonAlarm(json);
-
-if(getSdAlarm("ALARMS.TXT")!=0){                // if read alarm error we get save
-  if(getSdAlarm("SAVE.TXT")!=0){
-      Serial1.println("GETALARMSERROR");
-  }
-}
-savePublishAlarms(0);
-
-Serial1.println("GETALARMS");
-Mode=0;
+  Mode=0;
+  displaySelectDayScreen();
 }
 /************************************************************************************************************/
 void loop(void) {
+  Serial.println(Mode);
 
   if(Mode==0)
     initTime();
@@ -263,7 +257,7 @@ void loop(void) {
     displayAlarm(alarmPos);
   if(Mode==4)
     changeClock();
-  
+
   if(Mode>9){
     Mode-=10;
     if(Mode==1)
@@ -284,8 +278,17 @@ void wakeUpNow() {
       tft.reset();
       tft.drawBitmap(20,10,notification,32,32,YELLOW);
       messageScreen("Alarme Desactive",1);
-    }else
-      Mode+=10;
+      Mode=0;
+    }else{
+      if(Mode==1){
+        Mode=0;
+      }else if(Mode!=0){
+        Mode=1;
+      }else if(Mode==0){
+        Mode=1;
+      }
+      delay(1000);
+    }
   }
 
 }
